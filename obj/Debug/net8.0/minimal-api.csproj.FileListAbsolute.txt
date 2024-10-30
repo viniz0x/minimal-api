@@ -23,3 +23,4 @@ C:\Users\luap3\OneDrive\Desktop\Workspace\dio_SiteDeCursos\xp-inc-full-stack-dev
 C:\Users\luap3\OneDrive\Desktop\Workspace\dio_SiteDeCursos\xp-inc-full-stack-developer\minimal-api\obj\Debug\net8.0\minimal-api.pdb
 C:\Users\luap3\OneDrive\Desktop\Workspace\dio_SiteDeCursos\xp-inc-full-stack-developer\minimal-api\obj\Debug\net8.0\minimal-api.genruntimeconfig.cache
 C:\Users\luap3\OneDrive\Desktop\Workspace\dio_SiteDeCursos\xp-inc-full-stack-developer\minimal-api\obj\Debug\net8.0\ref\minimal-api.dll
+C:\Users\luap3\OneDrive\Desktop\Workspace\dio_SiteDeCursos\xp-inc-full-stack-developer\minimal-api\obj\Debug\net8.0\minimal-api.sourcelink.json
