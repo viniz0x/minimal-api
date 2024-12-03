@@ -12,47 +12,88 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.OpenApi.Models;
+
 
 
 #region Builder
 var builder = WebApplication.CreateBuilder(args);
 
-var key = builder.Configuration.GetSection("Jwt").ToString();
-if(string.IsNullOrEmpty(key)) key = "123456";
+// Configuração da chave JWT
+var key = builder.Configuration.GetValue<string>("Jwt");
+if (string.IsNullOrEmpty(key)) 
+    key = "123456";
 
-builder.Services.AddAuthentication(option => {
-    option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(option => {
-    option.TokenValidationParameters = new TokenValidationParameters{
+// Configuração de autenticação JWT
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
         ValidateLifetime = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+        ValidateIssuer = false, // Atualize se tiver um emissor configurado
+        ValidateAudience = false // Atualize se tiver uma audiência configurada
     };
 });
 
+// Configuração de autorização
 builder.Services.AddAuthorization();
 
-builder.Services.AddScoped<IAdministradorServico, AdministradorServicio>();
+// Serviços da aplicação
+builder.Services.AddScoped<IAdministradorServico, AdministradorServico>();
 builder.Services.AddScoped<IVeiculoServico, VeiculoServico>();
 
+// Configuração do Swagger
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization", // Nome correto para cabeçalho
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Insira o token JWT aqui"
+    });
 
-builder.Services.AddSwaggerGen();
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Id = "Bearer",
+                    Type = ReferenceType.SecurityScheme
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
-builder.Services.AddDbContext<DbContexto>(options => {
+// Configuração do banco de dados
+builder.Services.AddDbContext<DbContexto>(options =>
+{
     options.UseMySql(
         builder.Configuration.GetConnectionString("MySql"),
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("MySql"))
-        );
+    );
 });
 
 var app = builder.Build();
 #endregion
 
-#region Home
-app.MapGet("/", () => Results.Json(new Home())).WithTags("Home");
 
-private List<Claim> GetClaims() { return new List<Claim>(); }
+#region Home
+app.MapGet("/", () => Results.Json(new Home())).AllowAnonymous().WithTags("Home");
+
+List<Claim> GetClaims() { return new List<Claim>(); }
 #endregion
 
 #region Administradores
@@ -90,7 +131,7 @@ app.MapPost("/administradores/login", ([FromBody] LoginDTO loginDTO, IAdministra
     } else {
         return Results.Unauthorized();
     }
-}).WithTags("Administradores");
+}).AllowAnonymous().WithTags("Administradores");
 
 
 
